@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.kirolos'
+version = '0.1.0'
+
+sourceCompatibility = 11
+targetCompatibility = 11
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly files('/usr/share/burpsuite/burpsuite.jar')
+}
+
+jar {
+    archiveFileName = 'burp-aes-extension.jar'
+}
