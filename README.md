@@ -1,105 +1,105 @@
-# 🔐 AES Traffic Decryptor — Burp Suite Extension
+# 🔐 AES Traffic Decryptor — Расширение для Burp Suite
 
-**Transparent AES-CBC decryption, replay, and scan-aware analysis for Burp Suite.**
+**Прозрачная расшифровка, повтор и анализ AES-CBC зашифрованного трафика в Burp Suite.**
 
-A professional Burp Suite extension that enables penetration testers to work seamlessly with APIs that encrypt request/response bodies using AES-CBC. The extension automatically decrypts traffic for viewing and editing, and re-encrypts it before transmission — making encryption completely transparent.
-
----
-
-## 📋 Table of Contents
-
-- [Problem](#-problem)
-- [Solution](#-solution)
-- [Features](#-features)
-- [Requirements](#-requirements)
-- [Installation](#-installation)
-- [Configuration](#-configuration)
-- [Usage](#-usage)
-- [Project Structure](#-project-structure)
-- [Building from Source](#-building-from-source)
-- [How It Works](#-how-it-works)
-- [Compatibility](#-compatibility)
-- [Limitations](#-limitations)
-- [Testing](#-testing)
+Профессиональное расширение для Burp Suite, позволяющее пентестерам прозрачно работать с API, которые шифруют тела запросов и ответов с помощью AES-CBC. Расширение автоматически расшифровывает трафик для просмотра и редактирования, а перед отправкой — зашифровывает обратно. Шифрование становится полностью прозрачным.
 
 ---
 
-## ❓ Problem
+## 📋 Содержание
 
-Many modern APIs encrypt their HTTP request and response bodies using AES encryption (Base64-encoded ciphertext). This creates major challenges during penetration testing:
-
-- **HTTP History** shows unreadable encrypted data instead of actual JSON content
-- **Repeater** cannot be used to modify parameters — the body is ciphertext
-- **Active Scanner** cannot identify injection points or analyze responses
-- Manual testing requires constant encrypt/decrypt operations outside Burp
+- [Проблема](#-проблема)
+- [Решение](#-решение)
+- [Возможности](#-возможности)
+- [Требования](#-требования)
+- [Установка](#-установка)
+- [Конфигурация](#-конфигурация)
+- [Использование](#-использование)
+- [Структура проекта](#-структура-проекта)
+- [Сборка из исходников](#-сборка-из-исходников)
+- [Как это работает](#-как-это-работает)
+- [Совместимость](#-совместимость)
+- [Ограничения](#-ограничения)
+- [Тестирование](#-тестирование)
 
 ---
 
-## ✅ Solution
+## ❓ Проблема
 
-This extension acts as a **transparent translation layer** between the tester and the encrypted API:
+Многие современные API шифруют тела HTTP-запросов и ответов с помощью AES (Base64-кодированный шифротекст). Это создаёт серьёзные проблемы при тестировании на проникновение:
+
+- **HTTP History** отображает нечитаемые зашифрованные данные вместо реального JSON
+- **Repeater** не позволяет изменять параметры — тело запроса представляет собой шифротекст
+- **Active Scanner** не может определить точки вставки и проанализировать ответы
+- Ручное тестирование требует постоянных операций шифрования/расшифровки вне Burp
+
+---
+
+## ✅ Решение
+
+Расширение выступает как **прозрачный слой трансляции** между тестировщиком и зашифрованным API:
 
 ```
-You (plaintext) → Extension encrypts → Server receives encrypted request
-Server responds (encrypted) → Extension decrypts → You see plaintext
+Вы (открытый текст) → Расширение шифрует → Сервер получает зашифрованный запрос
+Сервер отвечает (зашифровано) → Расширение расшифровывает → Вы видите открытый текст
 ```
 
-From the tester's perspective, the API appears to communicate in plaintext.
+С точки зрения тестировщика, API работает в открытом виде.
 
 ---
 
-## 🚀 Features
+## 🚀 Возможности
 
-### Configuration & Cryptography
-- AES Key input (128/192/256-bit via hex string)
-- Initialization Vector (IV) input (128-bit hex)
-- Target Host filtering — only matching traffic is processed
-- PKCS5Padding for dynamic data lengths
-- Real-time input validation with visual feedback
-- Built-in "Test Encryption" button to verify key/IV before use
-- Configuration persistence across Burp restarts
+### Конфигурация и криптография
+- Ввод AES-ключа (128/192/256 бит через hex-строку)
+- Ввод вектора инициализации IV (128 бит, hex)
+- Фильтрация по целевому хосту — обрабатывается только совпадающий трафик
+- PKCS5Padding для данных динамической длины
+- Валидация ввода в реальном времени с визуальной обратной связью
+- Кнопка «Test Encryption» для проверки ключа/IV перед использованием
+- Сохранение конфигурации между перезапусками Burp
 
-### UI Integration
-- **`decrypted_message` tab** in HTTP History — view decrypted requests and responses
-- **`decrypted_message` tab** in Repeater — edit plaintext, auto-encrypt on Send, auto-decrypt response
-- **HTTP Logger** — logs decrypted traffic summaries and highlights matching requests in cyan
-- Clean status indicators: `[EDITABLE]` / `[READ-ONLY]` mode labels
-- Professional error display when decryption fails
+### Интеграция с интерфейсом (UI)
+- Вкладка **`decrypted_message`** в HTTP History — просмотр расшифрованных запросов и ответов
+- Вкладка **`decrypted_message`** в Repeater — редактирование открытого текста, автошифрование при Send, авторасшифровка ответа
+- **HTTP Logger** — логирование расшифрованного трафика и подсветка соответствующих запросов в истории
+- Индикаторы режима: `[EDITABLE]` / `[READ-ONLY]`
+- Профессиональное отображение ошибок при неудачной расшифровке
 
-### Active Scanner (Burp Professional)
-- Custom insertion points from decrypted request bodies
-- JSON parameter extraction (strings, numbers, booleans)
-- Form-encoded parameter extraction
-- JSON-aware payload escaping
-- URL-encoding for form payloads
-- Response decryption for vulnerability analysis
-- Dashboard reporting with decrypted evidence
-- Detects: Reflected Input, SQL Errors, Stack Trace Disclosure
+### Автоматизация (Active Scan) — Burp Professional
+- Пользовательские точки вставки из расшифрованных тел запросов
+- Извлечение JSON-параметров (строки, числа, булевы значения)
+- Извлечение form-encoded параметров
+- JSON-aware экранирование пейлоадов
+- URL-кодирование для form-пейлоадов
+- Расшифровка ответов для анализа уязвимостей
+- Отображение на Dashboard с расшифрованными доказательствами
+- Обнаружение: отражённый ввод (Reflected Input), SQL-ошибки, раскрытие стек-трейсов
 
 ---
 
-## 📦 Requirements
+## 📦 Требования
 
-| Requirement | Version |
+| Требование | Версия |
 |---|---|
-| Java JDK | 11 or higher |
-| Burp Suite | Community or Professional (2023+) |
-| Gradle | 4.x+ (included via wrapper) |
+| Java JDK | 11 и выше |
+| Burp Suite | Community или Professional (2023+) |
+| Gradle | 4.x+ (включён через wrapper) |
 
 ---
 
-## 📥 Installation
+## 📥 Установка
 
-### Option 1: Download JAR (Recommended)
+### Вариант 1: Скачать JAR (Рекомендуется)
 
-1. Download `burp-aes-extension.jar` from [Releases](https://github.com/KirolosKhairy/burp-aes-extension/releases)
-2. Open Burp Suite
-3. Go to **Extensions** → **Installed** → **Add**
+1. Скачайте `burp-aes-extension.jar` из [Releases](https://github.com/KirolosKhairy/burp-aes-extension/releases)
+2. Откройте Burp Suite
+3. Перейдите в **Extensions** → **Installed** → **Add**
 4. Extension Type: **Java**
-5. Select the downloaded JAR file
-6. Click **Next** — verify "Extension loaded" appears
+5. Выберите скачанный JAR-файл
+6. Нажмите **Next** — убедитесь, что появилось «Extension loaded»
 
-### Option 2: Build from Source
+### Вариант 2: Сборка из исходников
 
 ```bash
 git clone https://github.com/KirolosKhairy/burp-aes-extension.git
@@ -107,219 +107,220 @@ cd burp-aes-extension
 gradle build
 ```
 
-Then load `build/libs/burp-aes-extension.jar` in Burp as described above.
+Затем загрузите `build/libs/burp-aes-extension.jar` в Burp как описано выше.
 
 ---
 
-## ⚙️ Configuration
+## ⚙️ Конфигурация
 
-1. Click the **"AES Config"** tab in Burp's top navigation bar
-2. Enter your settings:
+1. Нажмите на вкладку **«AES Config»** в верхней панели навигации Burp
+2. Введите параметры:
 
-| Field | Format | Example |
+| Поле | Формат | Пример |
 |---|---|---|
-| AES Key | Hex string (32/48/64 chars) | `0123456789abcdef0123456789abcdef` |
-| IV | Hex string (32 chars) | `abcdef0123456789abcdef0123456789` |
-| Target Host | Hostname substring | `api.target.com` |
+| AES Key | Hex-строка (32/48/64 символа) | `0123456789abcdef0123456789abcdef` |
+| IV | Hex-строка (32 символа) | `abcdef0123456789abcdef0123456789` |
+| Target Host | Подстрока имени хоста | `api.target.com` |
 
-3. Click **"Save Configuration"**
-4. Status indicator turns green: **"Active — Extension is configured and ready"**
+3. Нажмите **«Save Configuration»**
+4. Индикатор статуса станет зелёным: **«Active — Extension is configured and ready»**
 
-### Optional: Test Your Key
+### Проверка ключа
 
-Click **"Test Encryption"** before saving — it runs a full encrypt→decrypt round-trip to verify your key and IV are correct.
+Нажмите **«Test Encryption»** перед сохранением — кнопка выполнит полный цикл шифрование→расшифровка для проверки корректности ключа и IV.
 
-### Where to Find the Key and IV
+### Где найти ключ и IV
 
-In a real penetration test, you obtain the AES key and IV from:
+При реальном тестировании на проникновение ключ и IV можно получить из:
 
-- JavaScript source code of the web application
-- Reverse engineering the mobile application (APK/IPA)
-- Intercepting the key exchange mechanism
-- Configuration files or hardcoded values
-
----
-
-## 🔧 Usage
-
-### Viewing Decrypted Traffic (HTTP History)
-
-1. Send a request to the target API through Burp Proxy
-2. Go to **Proxy → HTTP History**
-3. Click on the request — find the **"decrypted_message"** tab next to Pretty/Raw/Hex
-4. Click it to see the plaintext JSON body
-5. Do the same for the Response side
-
-### Editing and Resending (Repeater)
-
-1. Right-click a request in HTTP History → **Send to Repeater**
-2. In Repeater, click the **"decrypted_message"** tab
-3. Edit the plaintext JSON (e.g., change parameter values)
-4. Click **Send**
-5. The extension automatically encrypts the modified body before sending
-6. The response **"decrypted_message"** tab shows the decrypted server response
-
-### Active Scanning (Professional Edition)
-
-1. Right-click a request → **Scan**
-2. The extension automatically provides insertion points from the decrypted body
-3. The Scanner injects payloads into plaintext parameters
-4. The extension encrypts each payload before sending to the server
-5. Responses are decrypted and analyzed for vulnerabilities
-6. Findings appear on the **Dashboard** with decrypted evidence
+- Исходного кода JavaScript веб-приложения
+- Реверс-инжиниринга мобильного приложения (APK/IPA)
+- Перехвата механизма обмена ключами
+- Конфигурационных файлов или жёстко закодированных значений
 
 ---
 
-## 📁 Project Structure
+## 🔧 Использование
+
+### Просмотр расшифрованного трафика (HTTP History)
+
+1. Отправьте запрос к целевому API через Burp Proxy
+2. Перейдите в **Proxy → HTTP History**
+3. Нажмите на запрос — найдите вкладку **«decrypted_message»** рядом с Pretty/Raw/Hex
+4. Нажмите на неё для просмотра расшифрованного JSON-тела
+5. Аналогично для стороны Response
+
+### Редактирование и повторная отправка (Repeater)
+
+1. Правой кнопкой на запрос в HTTP History → **Send to Repeater**
+2. В Repeater нажмите на вкладку **«decrypted_message»**
+3. Отредактируйте открытый текст JSON (например, измените значения параметров)
+4. Нажмите **Send**
+5. Расширение автоматически зашифрует изменённое тело перед отправкой
+6. Вкладка **«decrypted_message»** в ответе покажет расшифрованный ответ сервера
+
+### Активное сканирование (Professional Edition)
+
+1. Правой кнопкой на запрос → **Scan**
+2. Расширение автоматически предоставляет точки вставки из расшифрованного тела
+3. Сканер внедряет пейлоады в открытые параметры
+4. Расширение шифрует каждый пейлоад перед отправкой на сервер
+5. Ответы расшифровываются и анализируются на уязвимости
+6. Результаты отображаются на **Dashboard** с расшифрованными доказательствами
+
+---
+
+## 📁 Структура проекта
 
 ```
 burp-aes-extension/
-├── build.gradle                          # Build configuration
-├── gradle/wrapper/                       # Gradle wrapper
-├── gradlew / gradlew.bat                 # Build scripts
-├── settings.gradle                       # Project settings
-├── README.md                             # This file
+├── build.gradle                            # Конфигурация сборки
+├── gradle/wrapper/                         # Gradle wrapper
+├── gradlew / gradlew.bat                   # Скрипты сборки
+├── settings.gradle                         # Настройки проекта
+├── README.md                               # Этот файл
 └── src/
     ├── main/java/burp/
-    │   ├── BurpAesExtension.java         # Main entry point, shared state
-    │   ├── CryptoHelper.java             # AES/CBC/PKCS5Padding utility
-    │   ├── ConfigTab.java                # Configuration UI tab
-    │   ├── DecryptedMessageTab.java      # Decrypted view/edit tab
-    │   ├── DecryptedMessageTabFactory.java  # Tab factory
-    │   ├── AesScanCheck.java             # Scanner insertion point provider
-    │   ├── AesInsertionPoint.java        # Custom insertion points
-    │   ├── AesResponseScanCheck.java     # Response analysis for Dashboard
-    │   └── AesHttpLogger.java            # Traffic logger
+    │   ├── BurpAesExtension.java           # Главный класс, общее состояние
+    │   ├── CryptoHelper.java               # Утилита AES/CBC/PKCS5Padding
+    │   ├── ConfigTab.java                  # UI-вкладка конфигурации
+    │   ├── DecryptedMessageTab.java        # Вкладка просмотра/редактирования
+    │   ├── DecryptedMessageTabFactory.java # Фабрика вкладок
+    │   ├── AesScanCheck.java               # Поставщик точек вставки для сканера
+    │   ├── AesInsertionPoint.java          # Пользовательские точки вставки
+    │   ├── AesResponseScanCheck.java       # Анализ ответов для Dashboard
+    │   └── AesHttpLogger.java              # Логгер трафика
     └── test/java/burp/
-        └── CryptoTest.java              # Crypto unit tests (40 tests)
+        └── CryptoTest.java                 # Крипто-тесты (40 тестов)
 ```
 
 ---
 
-## 🏗️ Building from Source
+## 🏗️ Сборка из исходников
 
 ```bash
-# Clone the repository
+# Клонировать репозиторий
 git clone https://github.com/KirolosKhairy/burp-aes-extension.git
 cd burp-aes-extension
 
-# Build
+# Сборка
 gradle build
 
-# Output JAR location
+# Результат — JAR-файл
 ls -la build/libs/burp-aes-extension.jar
 
-# Run crypto tests
+# Запуск крипто-тестов
 javac src/test/java/burp/CryptoTest.java -d /tmp/cryptotest/
 java -cp /tmp/cryptotest burp.CryptoTest
 ```
 
 ---
 
-## 🔍 How It Works
+## 🔍 Как это работает
 
-### Encryption Flow
+### Поток шифрования
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌──────────┐
-│  You edit    │     │  Extension   │     │  Server  │
-│  plaintext   │ ──→ │  encrypts    │ ──→ │ receives │
-│  in Repeater │     │  with AES    │     │ encrypted│
-└─────────────┘     └──────────────┘     └──────────┘
+┌──────────────┐     ┌──────────────┐     ┌───────────┐
+│  Вы          │     │  Расширение  │     │  Сервер   │
+│  редактируете│ ──→ │  шифрует     │ ──→ │  получает │
+│  открытый    │     │  с помощью   │     │  зашифро- │
+│  текст       │     │  AES         │     │  ванное   │
+└──────────────┘     └──────────────┘     └───────────┘
                                                │
-┌─────────────┐     ┌──────────────┐           │
-│  You see    │     │  Extension   │     ┌─────▼────┐
-│  plaintext  │ ◀── │  decrypts    │ ◀── │  Server  │
-│  response   │     │  response    │     │ responds │
-└─────────────┘     └──────────────┘     └──────────┘
+┌──────────────┐     ┌──────────────┐          │
+│  Вы видите   │     │  Расширение  │     ┌────▼──────┐
+│  открытый    │ ◀── │  расшифро-   │ ◀── │  Сервер   │
+│  ответ       │     │  вывает      │     │  отвечает │
+└──────────────┘     └──────────────┘     └───────────┘
 ```
 
-### Scanner Flow
+### Поток сканера
 
 ```
 ┌──────────┐     ┌────────────┐     ┌──────────┐     ┌───────────┐
-│ Scanner  │     │ Extension  │     │ Extension│     │  Server   │
-│ provides │ ──→ │ inserts    │ ──→ │ encrypts │ ──→ │ receives  │
-│ payload  │     │ into JSON  │     │ body     │     │ encrypted │
+│ Сканер   │     │ Расширение │     │ Расширение│     │  Сервер   │
+│ даёт     │ ──→ │ вставляет  │ ──→ │ шифрует  │ ──→ │ получает  │
+│ пейлоад  │     │ в JSON     │     │ тело     │     │ зашифров. │
 └──────────┘     └────────────┘     └──────────┘     └───────────┘
-                                                           │
-┌──────────┐     ┌────────────┐     ┌──────────┐          │
-│Dashboard │     │ Extension  │     │ Extension│     ┌─────▼─────┐
-│ shows    │ ◀── │ creates    │ ◀── │ decrypts │ ◀── │  Server   │
-│ issues   │     │ AuditIssue │     │ response │     │ responds  │
-└──────────┘     └────────────┘     └──────────┘     └───────────┘
+                                                          │
+┌──────────┐     ┌────────────┐     ┌──────────┐         │
+│Dashboard │     │ Расширение │     │ Расширение│    ┌────▼──────┐
+│ показы-  │ ◀── │ создаёт    │ ◀── │ расшифро-│ ◀──│  Сервер   │
+│ вает     │     │ AuditIssue │     │ вывает   │    │ отвечает  │
+└──────────┘     └────────────┘     └──────────┘    └───────────┘
 ```
 
-### Technical Details
+### Технические детали
 
-| Component | Details |
+| Компонент | Описание |
 |---|---|
-| Algorithm | AES (128/192/256-bit) |
-| Mode | CBC (Cipher Block Chaining) |
-| Padding | PKCS5Padding |
-| Encoding | Base64 for transport |
-| Key Format | Hexadecimal string |
-| IV Format | Hexadecimal string (32 hex chars = 16 bytes) |
+| Алгоритм | AES (128/192/256 бит) |
+| Режим | CBC (Cipher Block Chaining) |
+| Добивка | PKCS5Padding |
+| Кодирование | Base64 для транспорта |
+| Формат ключа | Шестнадцатеричная строка |
+| Формат IV | Шестнадцатеричная строка (32 символа = 16 байт) |
 | API | Burp Montoya API |
 
 ---
 
-## 🔄 Compatibility
+## 🔄 Совместимость
 
-| Feature | Community Edition | Professional Edition |
+| Функция | Community Edition | Professional Edition |
 |---|---|---|
-| Configuration UI | ✅ | ✅ |
-| decrypted_message tab | ✅ | ✅ |
-| Repeater editing | ✅ | ✅ |
+| UI конфигурации | ✅ | ✅ |
+| Вкладка decrypted_message | ✅ | ✅ |
+| Редактирование в Repeater | ✅ | ✅ |
 | HTTP Logger | ✅ | ✅ |
 | Active Scanner | ❌ | ✅ |
-| Dashboard issues | ❌ | ✅ |
+| Отображение на Dashboard | ❌ | ✅ |
 
-Scanner registration is wrapped in try/catch for safe Community Edition loading.
-
----
-
-## ⚠️ Limitations
-
-- **Whole-body encryption**: Assumes the entire request/response body is a Base64-encoded AES ciphertext. Does not support partial encryption (e.g., only one JSON field encrypted).
-- **JSON parsing**: Scanner uses regex-based parameter extraction. Works well for flat JSON objects; deeply nested structures may have limited coverage.
-- **Static Key/IV**: Uses a single key and IV pair. Does not support per-request key derivation or key rotation.
-- **Plaintext logging**: Decrypted content is logged to Burp's output. Be aware when handling sensitive data.
-- **Host matching**: Uses case-insensitive substring matching. Setting target to "api" would match any host containing "api".
+Регистрация сканера обёрнута в try/catch для корректной работы в Community Edition.
 
 ---
 
-## 🧪 Testing
+## ⚠️ Ограничения
 
-### Automated Crypto Tests
-
-40 tests covering:
-- Round-trip encryption/decryption
-- Empty and long strings (1000+ chars)
-- Special characters and Unicode
-- Invalid Base64, wrong key/IV lengths
-- Padding boundaries (1–33 bytes)
-
-**Result: 40/40 PASSED**
-
-### Manual Testing with Test Server
-
-A Python Flask test server (`test-aes-server/server.py`) was used for functional testing with endpoints:
-
-- `POST /api/login` — Authentication with encrypted credentials
-- `POST /api/profile` — Profile lookup with reflected user_id
-- `GET /api/health` — Plain text connectivity check
-
-All functional tests passed: decryption, editing, re-encryption, host filtering, and config persistence.
+- **Полное шифрование тела**: Предполагается, что всё тело запроса/ответа представляет собой Base64-кодированный AES-шифротекст. Частичное шифрование (например, только одно поле JSON) не поддерживается.
+- **Парсинг JSON**: Сканер использует regex-извлечение параметров. Хорошо работает для плоских JSON-объектов; покрытие глубоко вложенных структур ограничено.
+- **Статический ключ/IV**: Используется одна пара ключ/IV. Не поддерживается генерация ключей для каждого запроса или ротация ключей.
+- **Логирование открытого текста**: Расшифрованные данные логируются в вывод Burp. Будьте внимательны при работе с конфиденциальными данными.
+- **Сопоставление хоста**: Используется регистронезависимое вхождение подстроки. Установка цели «api» будет соответствовать любому хосту, содержащему «api».
 
 ---
 
-## 👤 Author
+## 🧪 Тестирование
 
-**Kirolos** — Penetration Tester & Security Tool Developer
+### Автоматические крипто-тесты
+
+40 тестов, охватывающих:
+- Цикл шифрование/расшифровка (round-trip)
+- Пустые и длинные строки (1000+ символов)
+- Специальные символы и Unicode
+- Некорректный Base64, неверная длина ключа/IV
+- Границы padding (длины 1–33 байта)
+
+**Результат: 40/40 PASSED**
+
+### Функциональное тестирование с тестовым сервером
+
+Для тестирования использовался Python Flask-сервер с AES-шифрованием (localhost:8888) с эндпоинтами:
+
+- `POST /api/login` — Аутентификация с зашифрованными учётными данными
+- `POST /api/profile` — Запрос профиля с отражённым user_id
+- `GET /api/health` — Проверка подключения (открытый текст)
+
+Все функциональные тесты пройдены: расшифровка, редактирование, повторное шифрование, фильтрация по хосту и сохранение конфигурации.
 
 ---
 
-## 📄 License
+## 👤 Автор
 
-This project is provided for educational and authorized security testing purposes only.
+**Kirolos** — Пентестер и разработчик инструментов безопасности
+
+---
+
+## 📄 Лицензия
+
+Этот проект предоставляется исключительно для образовательных целей и авторизованного тестирования безопасности.
