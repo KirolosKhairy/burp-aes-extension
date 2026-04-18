@@ -1,0 +1,12 @@
+build/
+.gradle/
+bin/
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+.idea/
+*.iml
+.claude/
+.qwen/
+.codex/
+.vscode/
