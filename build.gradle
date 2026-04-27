@@ -1,0 +1,19 @@
+plugins {
+    id 'java'
+}
+
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly files('/usr/share/burpsuite/burpsuite.jar')
+}
+
+jar {
+    baseName = 'burp-aes-extension'
+    version = ''
+}
